@@ -1,0 +1,31 @@
+- name: Create Persistent Volume
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: postgres-pv
+      spec:
+        capacity:
+          storage: 2Gi
+        accessModes:
+          - ReadWriteOnce
+        hostPath:
+          path: "/local"
+        storageClassName: standard
+ 
+- name: Create Persistent Volume Claim
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: postgres-pvc
+        namespace: development
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: standard

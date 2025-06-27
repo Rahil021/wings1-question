@@ -1,0 +1,115 @@
+- name: Kubernetes setup using Ansible
+  hosts: localhost
+  gather_facts: no
+  roles:
+    - Namespace
+    - ClusterRole
+    - PersistentVolume
+ 
+  tasks:
+    - name: Build Docker image for Flask app
+      community.docker.docker_image:
+        name: flask-image
+        build:
+          path: ./Flask
+        source: build
+ 
+    - name: Deploy Flask application
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: flask-deployment
+          spec:
+            replicas: 4
+            selector:
+              matchLabels:
+                app: flask
+            template:
+              metadata:
+                labels:
+                  app: flask
+              spec:
+                containers:
+                  - name: flask-container
+                    image: flask-image
+                    ports:
+                      - containerPort: 5000
+ 
+    - name: Expose Flask app with service
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: flask-service
+          spec:
+            type: LoadBalancer
+            selector:
+              app: flask
+            ports:
+              - protocol: TCP
+                port: 80
+                targetPort: 5000
+ 
+    - name: Deploy PostgreSQL StatefulSet
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: apps/v1
+          kind: StatefulSet
+          metadata:
+            name: postgres-database
+            namespace: development
+          spec:
+            serviceName: "postgres-service"
+            replicas: 2
+            selector:
+              matchLabels:
+                app: postgres
+            template:
+              metadata:
+                labels:
+                  app: postgres
+              spec:
+                containers:
+                  - name: postgres-container
+                    image: postgres:13-alpine
+                    ports:
+                      - containerPort: 5432
+                    env:
+                      - name: POSTGRES_DB
+                        value: Kube_datas
+                      - name: POSTGRES_USER
+                        value: Admin
+                      - name: POSTGRES_PASSWORD
+                        value: root
+                    volumeMounts:
+                      - name: postgres-data
+                        mountPath: /usr/local/pgsql/data
+            volumeClaimTemplates:
+              - metadata:
+                  name: postgres-data
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 1Gi
+                  storageClassName: standard
+ 
+    - name: Create service for Postgres
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: postgres-service
+            namespace: development
+          spec:
+            type: ClusterIP
+            selector:
+              app: postgres
+            ports:
+              - protocol: TCP
+                port: 5432
+                targetPort: 5432

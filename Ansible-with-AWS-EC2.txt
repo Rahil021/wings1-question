@@ -1,0 +1,85 @@
+===========================================================================
+Ansible with amazon EC2
+===========================================================================
+https://www.youtube.com/watch?v=CjqzlmKMq44
+
+There might be few errors in yaml syntax, as code is copied from video's description
+===========================================================================
+
+Useful Ansible commands
+
+1. ansible-doc ec2 => shows all options for ec2 configuration
+2. ansible-playbook --syntax-check <file>.yaml  => useful to check syntax error in file
+3. ansible-playbook -C <file>.yaml  => -C parameter is used to take dry run
+4. ansible-playbook <file>.yaml   => run ansible playbook
+
+===========================================================================
+
+Ansible master node setup on ec2 with Amazon Linux OS
+
+sudo login command: sudo su -l
+
+1. yum install ansible => OS recommended to run => sudo amazon-linux-extras install ansible2
+2. yum install python-pip
+3. pip install boto  <- boto provides interface to aws cloud
+
+4. Create IAM role with full access of EC2 and add role in Ansible node ec2 instance.
+
+===========================================================================
+
+Ansible Code for Daemo Lab.
+
+#### cat main.yml
+
+#Lauch Basic EC@2 instance in mumbai region.
+name: Ansible Play
+  hosts: localhost
+  tasks:
+name:   launching AWS instance using Ansible
+
+    ec2:
+      key_name: mumbai
+      region: ap-south-1
+      instance_type: t2.micro
+      image: ami-05c8ca4485f8b138a
+      instance_tags:
+        Name: Daemo_server
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+ ##### cat stop.yml
+
+name: Stop instances
+  hosts: localhost
+  tasks:
+name: Stop instances that were previously launched
+      ec2:
+        state: stopped
+        region: ap-south-1
+        instance_tags:
+           Name: Daemo_server
+
+##### cat start.yml
+
+name: Start instances
+  hosts: localhost
+  tasks:
+name: Start instances that were previously Stoped
+      ec2:
+        state: running
+        region: ap-south-1
+        instance_tags:
+           Name: Daemo_server
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+#### cat terminate.yml
+
+name: Terminate instances
+  hosts: localhost
+  tasks:
+name: Terminate instances that were previously created
+      ec2:
+        state: absent
+        region: ap-south-1
+        instance_ids: i-0f1bd9874124383b2

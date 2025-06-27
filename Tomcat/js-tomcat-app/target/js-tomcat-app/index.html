@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JS Tomcat App</title>
+</head>
+<body>
+    <h1>JS Frontend</h1>
+    <button onclick="callServlet()">Call Servlet</button>
+    <pre id="output"></pre>
+
+    <script>
+        function callServlet() {
+            fetch("hello").then(res => res.text()).then(data => {
+                document.getElementById("output").textContent = data;
+            });
+        }
+    </script>
+</body>
+</html>
