@@ -1,0 +1,25 @@
+---
+- name: Configure Apache HTTP Server
+  hosts: webserver
+  become: yes
+
+  tasks:
+    - name: Install Apache using dnf
+      ansible.builtin.apt:  #dnf for Amazon Linux (instead of apt)
+        name: apache2       #httpd for dnf (apache2 for Ubuntu)
+        state: present
+        update_cache: yes   #update package manager cache
+
+    - name: Copy index.html to Apache root
+      ansible.builtin.copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Start and enable Apache service
+      ansible.builtin.service:
+        name: apache2        # httpd for Amazon Linuz
+        state: started
+        enabled: yes

@@ -1,0 +1,23 @@
+---
+- name: Switch ALB listener to Target Group B
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  collections:
+    - amazon.aws
+
+  vars:
+    region: us-east-1
+    listener_arn: "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/my-alb/50dc6c495c0c9188/9f8d30f1c289f2da"
+    target_group_b_arn: "arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/TargetGroupB/6d0ecf831eec9f09"
+
+  tasks:
+    - name: Update ALB listener to forward to Target Group B
+      amazon.aws.elb_application_lb_listener:
+        state: present
+        listener_arn: "{{ listener_arn }}"
+        default_actions:
+          - type: forward
+            target_group_arn: "{{ target_group_b_arn }}"
+        region: "{{ region }}"
